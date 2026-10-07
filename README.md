@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Inventory Management Application
 
 This is a simple Inventory Management application built with Lit elements for the frontend, Node.js for the API proxy, and ERPNext as the backend. It has been fully containerized using Docker.
@@ -54,3 +55,6 @@ The entire application (Frontend UI, API Proxy, and ERPNext Backend infrastructu
 - The **Frontend** (`/frontend`) is built as static files using Vite and served via an ultra-fast NGINX container.
 - The **API Proxy** (`/api-proxy`) is a Node.js Express server that securely holds your ERPNext credentials and forwards your UI's REST API requests to the ERPNext backend.
 - The **Backend** utilizes standard Frappe/ERPNext Docker images alongside MariaDB and Redis.
+=======
+# Inventory-Management
+>>>>>>> 02d18b1d0aa7628162e45ee7a8de9ea67619cc7e
