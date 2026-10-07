@@ -1,0 +1,28 @@
+services:
+
+  frontend:
+    build:
+      context: ./frontend
+    ports:
+      - "8081:80"
+    depends_on:
+      - api-proxy
+    networks:
+      - default
+
+  api-proxy:
+    build:
+      context: ./api-proxy
+    ports:
+      - "3000:3000"
+    environment:
+      - ERPNEXT_URL=http://backend:8000
+      - ERPNEXT_API_KEY=${ERPNEXT_API_KEY}
+      - ERPNEXT_API_SECRET=${ERPNEXT_API_SECRET}
+    networks:
+      - default
+      - frappe_docker_frappe_network
+
+networks:
+  frappe_docker_frappe_network:
+    external: true
