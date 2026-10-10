@@ -137,6 +137,17 @@ export class InventoryDashboard extends LitElement {
     this.activeTag = tag;
   }
 
+  get uniqueTags() {
+    const tagsSet = new Set();
+    this.items.forEach(item => {
+      if (item.tags) {
+        const tags = item.tags.split(',').map(t => t.trim()).filter(t => t);
+        tags.forEach(tag => tagsSet.add(tag));
+      }
+    });
+    return Array.from(tagsSet).sort();
+  }
+
   get filteredItems() {
     let result = this.items;
 
@@ -202,8 +213,9 @@ export class InventoryDashboard extends LitElement {
         <h3>Tags</h3>
         <ul class="tags-list">
           <li class="${this.activeTag === 'All' ? 'active' : ''}" @click="${() => this.setTag('All')}">All [${this.items.length}]</li>
-          <li class="${this.activeTag === 'T-shirt' ? 'active' : ''}" @click="${() => this.setTag('T-shirt')}">T-shirt</li>
-          <li class="${this.activeTag === 'Trouser' ? 'active' : ''}" @click="${() => this.setTag('Trouser')}">Trouser</li>
+          ${this.uniqueTags.map(tag => html`
+            <li class="${this.activeTag === tag ? 'active' : ''}" @click="${() => this.setTag(tag)}">${tag}</li>
+          `)}
         </ul>
       </div>
     `;

@@ -24,6 +24,29 @@ export const api = {
     }
   },
 
+  // Upload an image
+  async uploadImage(file) {
+    try {
+      const formData = new FormData();
+      formData.append('image', file);
+
+      const response = await fetch(`${API_BASE_URL}/upload`, {
+        method: 'POST',
+        body: formData
+      });
+
+      if (!response.ok) {
+        const err = await response.json();
+        throw new Error(err.error || 'Failed to upload image');
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      throw error;
+    }
+  },
+
   //    Create a new item
   async createItem(itemData) {
     try {

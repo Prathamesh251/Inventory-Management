@@ -104,42 +104,25 @@ export class InventoryItem extends LitElement {
       align-self: flex-start;
     }
     
-    .delete-btn {
-      background: none;
-      border: 1px solid #EF4444;
-      color: #EF4444;
-      cursor: pointer;
-      font-size: 12px;
-      padding: 4px 12px;
-      border-radius: 4px;
-      transition: background 0.2s, color 0.2s;
-    }
-    
-    .delete-btn:hover {
-      background: #EF4444;
-      color: white;
-    }
-    
-    .edit-btn {
-      background: none;
-      border: 1px solid var(--color-primary);
-      color: var(--color-primary);
-      cursor: pointer;
-      font-size: 12px;
-      padding: 4px 12px;
-      border-radius: 4px;
-      transition: background 0.2s, color 0.2s;
-    }
-    
-    .edit-btn:hover {
-      background: var(--color-primary);
-      color: white;
-    }
-    
     .actions {
       margin-left: auto;
       display: flex;
       gap: 8px;
+    }
+
+    .tags-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .item-image {
+    width: 100%;
+    height: 275px;
+    object-fit: contain;
+    object-position: center;
+    display: block;
+    background-color: #f5f5f5;
     }
   `;
 
@@ -170,14 +153,13 @@ export class InventoryItem extends LitElement {
   render() {
     if (!this.item) return html``;
 
-    // Splitting comma-separated tags and taking the first one for the badge
-    const firstTag = this.item.tags ? this.item.tags.split(',')[0].trim() : '';
+    const tagsList = this.item.tags ? this.item.tags.split(',').map(t => t.trim()).filter(t => t) : [];
 
     return html`
       <div class="container" @click="${this._handleEdit}">
         <div class="image-wrapper">
           ${this.item.image
-        ? html`<img src="${this.item.image}" alt="${this.item.item_name}" />`
+        ? html`<img class="item-image" src="${this.item.image}" alt="${this.item.item_name}" />`
         : html`<span>No Image</span>`}
         </div>
         
@@ -187,7 +169,9 @@ export class InventoryItem extends LitElement {
           
           <div class="meta">
             <span class="date">${this.item.date_added || 'N/A'}</span>
-            ${firstTag ? html`<span class="tag">${firstTag}</span>` : ''}
+            <div class="tags-row">
+              ${tagsList.map(tag => html`<span class="tag">${tag}</span>`)}
+            </div>
           </div>
         </div>
       </div>
