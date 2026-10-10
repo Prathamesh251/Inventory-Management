@@ -248,12 +248,20 @@ export class InventoryForm extends LitElement {
       <div class="form-grid">
         <div class="form-group">
           <label>Item Name <span>*</span></label>
-          <input type="text" id="item_name" placeholder="Enter item name" .value="${this.item?.item_name || ''}" />
+          <input 
+          type="text" 
+          id="item_name" 
+          placeholder="Enter item name" 
+          .value="${this.item?.item_name || ''}" />
         </div>
         
         <div class="form-group">
-          <label>Date <span>*</span></label>
-          <input type="date" id="date_added" .value="${this.item?.date_added || ''}" />
+          <input 
+          hidden
+          disabled
+          type="date"  
+          id="date_added"
+          .value="${new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' })}" />
         </div>
         
         <div class="form-group full-width">
@@ -261,7 +269,7 @@ export class InventoryForm extends LitElement {
           <textarea id="description" placeholder="Type your message..." .value="${this.item?.description || ''}"></textarea>
         </div>
         
-        <div class="form-group full-width">
+        <div class="form-group full-width"> 
           <label>Upload Image</label>
           <div class="upload-zone">
             <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
@@ -284,6 +292,9 @@ export class InventoryForm extends LitElement {
           <button class="btn btn-primary" @click="${this._handleSave}" ?disabled="${this.isSubmitting}">
             ${this.isSubmitting ? 'Saving...' : 'Save'}
           </button>
+        </div>
+        <div class="actions">
+          <button class="delete-btn" @click="${this._handleDelete}">Delete</button>
         </div>
       </div>
     `;

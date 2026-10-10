@@ -174,7 +174,7 @@ export class InventoryItem extends LitElement {
     const firstTag = this.item.tags ? this.item.tags.split(',')[0].trim() : '';
 
     return html`
-      <div class="container">
+      <div class="container" @click="${this._handleEdit}">
         <div class="image-wrapper">
           ${this.item.image
         ? html`<img src="${this.item.image}" alt="${this.item.item_name}" />`
@@ -188,10 +188,6 @@ export class InventoryItem extends LitElement {
           <div class="meta">
             <span class="date">${this.item.date_added || 'N/A'}</span>
             ${firstTag ? html`<span class="tag">${firstTag}</span>` : ''}
-            <div class="actions">
-              <button class="edit-btn" @click="${this._handleEdit}">Edit</button>
-              <button class="delete-btn" @click="${this._handleDelete}">Delete</button>
-            </div>
           </div>
         </div>
       </div>

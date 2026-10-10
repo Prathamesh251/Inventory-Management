@@ -38,7 +38,7 @@ app.get('/api/items', async (req, res) => {
     // Fetch standard fields that exist on the default Item DocType
     url.searchParams.set(
       'fields',
-      JSON.stringify(['name', 'item_name', 'description', 'image', 'item_group', 'creation'])
+      JSON.stringify(['name', 'item_name', 'description', 'image', 'item_group', 'creation', 'modified'])
     );
 
     // Pass through search/filtering if provided by the frontend
@@ -72,7 +72,7 @@ app.get('/api/items', async (req, res) => {
         ...item,
         description: cleanDescription,
         tags: extractedTags || item.item_group,
-        date_added: item.creation ? new Date(item.creation).toISOString().split('T')[0] : ''
+        date_added: item.modified ? new Date(item.modified).toISOString().split('T')[0] : (item.creation ? new Date(item.creation).toISOString().split('T')[0] : '')
       };
     });
 
@@ -146,6 +146,7 @@ app.put('/api/items/:name', async (req, res) => {
         updateData.description = currentDesc;
       }
     }
+    updateData.date_added = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
 
     const response = await fetch(url, {
       method: 'PUT',
