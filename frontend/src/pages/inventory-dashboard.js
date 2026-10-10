@@ -187,6 +187,19 @@ export class InventoryDashboard extends LitElement {
     return result;
   }
 
+  tagItemsLength(tag) {
+    let count = 0;
+    this.items.forEach(item => {
+      if (item.tags) {
+        const tags = item.tags.split(',').map(t => t.trim()).filter(t => t);
+        if (tags.includes(tag)) {
+          count++;
+        }
+      }
+    });
+    return count;
+  }
+
   render() {
     const displayItems = this.filteredItems;
 
@@ -214,10 +227,10 @@ export class InventoryDashboard extends LitElement {
         <ul class="tags-list">
           <li class="${this.activeTag === 'All' ? 'active' : ''}" @click="${() => this.setTag('All')}">All [${this.items.length}]</li>
           ${this.uniqueTags.map(tag => html`
-            <li class="${this.activeTag === tag ? 'active' : ''}" @click="${() => this.setTag(tag)}">${tag}</li>
+            <li class="${this.activeTag === tag ? 'active' : ''}" @click="${() => this.setTag(tag)}">${tag} <span>[${this.tagItemsLength(tag)}]</span></li>
           `)}
         </ul>
-      </div>
+      </div> 
     `;
   }
 }

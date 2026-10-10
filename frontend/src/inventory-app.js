@@ -17,6 +17,11 @@ export class InventoryApp extends LitElement {
       min-height: 100vh;
     }
     header {
+      // position: fixed;
+      // top: 0;
+      // left: 0;
+      // right: 0;
+      // z-index: 100;
       background-color: var(--color-white, #fff);
       border-bottom: 1px solid var(--color-border, #E5E7EB);
       padding: 16px 32px;
@@ -112,11 +117,7 @@ export class InventoryApp extends LitElement {
     return html`
       <header>
         <div class="logo">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect width="8" height="24" rx="2" fill="#F97316"/>
-            <rect x="12" width="12" height="24" rx="2" fill="#111827"/>
-          </svg>
-          Inventory <span>Admin</span>
+          <img src="./logo.svg" alt="Logo">
         </div>
         
         <div class="header-actions">
