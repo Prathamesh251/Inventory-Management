@@ -18,7 +18,7 @@ export class InventoryItem extends LitElement {
     :host(:hover) {
       box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
     }
-    
+     
     /* Layouts based on view */
     .container {
       display: flex;
@@ -103,6 +103,44 @@ export class InventoryItem extends LitElement {
       font-weight: 500;
       align-self: flex-start;
     }
+    
+    .delete-btn {
+      background: none;
+      border: 1px solid #EF4444;
+      color: #EF4444;
+      cursor: pointer;
+      font-size: 12px;
+      padding: 4px 12px;
+      border-radius: 4px;
+      transition: background 0.2s, color 0.2s;
+    }
+    
+    .delete-btn:hover {
+      background: #EF4444;
+      color: white;
+    }
+    
+    .edit-btn {
+      background: none;
+      border: 1px solid var(--color-primary);
+      color: var(--color-primary);
+      cursor: pointer;
+      font-size: 12px;
+      padding: 4px 12px;
+      border-radius: 4px;
+      transition: background 0.2s, color 0.2s;
+    }
+    
+    .edit-btn:hover {
+      background: var(--color-primary);
+      color: white;
+    }
+    
+    .actions {
+      margin-left: auto;
+      display: flex;
+      gap: 8px;
+    }
   `;
 
   constructor() {
@@ -111,18 +149,36 @@ export class InventoryItem extends LitElement {
     this.view = 'grid';
   }
 
+  _handleDelete(e) {
+    e.stopPropagation();
+    this.dispatchEvent(new CustomEvent('delete-item', {
+      detail: { name: this.item.name },
+      bubbles: true,
+      composed: true
+    }));
+  }
+
+  _handleEdit(e) {
+    e.stopPropagation();
+    this.dispatchEvent(new CustomEvent('edit-item', {
+      detail: this.item,
+      bubbles: true,
+      composed: true
+    }));
+  }
+
   render() {
     if (!this.item) return html``;
-    
+
     // Splitting comma-separated tags and taking the first one for the badge
     const firstTag = this.item.tags ? this.item.tags.split(',')[0].trim() : '';
 
     return html`
       <div class="container">
         <div class="image-wrapper">
-          ${this.item.image 
-            ? html`<img src="${this.item.image}" alt="${this.item.item_name}" />`
-            : html`<span>No Image</span>`}
+          ${this.item.image
+        ? html`<img src="${this.item.image}" alt="${this.item.item_name}" />`
+        : html`<span>No Image</span>`}
         </div>
         
         <div class="content">
@@ -132,6 +188,10 @@ export class InventoryItem extends LitElement {
           <div class="meta">
             <span class="date">${this.item.date_added || 'N/A'}</span>
             ${firstTag ? html`<span class="tag">${firstTag}</span>` : ''}
+            <div class="actions">
+              <button class="edit-btn" @click="${this._handleEdit}">Edit</button>
+              <button class="delete-btn" @click="${this._handleDelete}">Delete</button>
+            </div>
           </div>
         </div>
       </div>

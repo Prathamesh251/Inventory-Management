@@ -120,6 +120,17 @@ export class InventoryDashboard extends LitElement {
     }
   }
 
+  async handleDelete(name) {
+    if (confirm('Are you sure you want to delete this item?')) {
+      try {
+        await api.deleteItem(name);
+        this.fetchItems();
+      } catch (err) {
+        alert(err.message || 'Failed to delete item');
+      }
+    }
+  }
+
   setTag(tag) {
     this.activeTag = tag;
   }
@@ -164,7 +175,7 @@ export class InventoryDashboard extends LitElement {
         ${!this.loading && displayItems.length > 0 ? html`
           <div class="${this.viewMode === 'grid' ? 'items-grid' : 'items-list'}">
             ${displayItems.map(item => html`
-              <inventory-item .item="${item}" view="${this.viewMode}"></inventory-item>
+              <inventory-item .item="${item}" view="${this.viewMode}" @delete-item="${(e) => this.handleDelete(e.detail.name)}"></inventory-item>
             `)}
           </div>
         ` : ''}

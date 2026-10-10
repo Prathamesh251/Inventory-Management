@@ -6,7 +6,8 @@ export class InventoryApp extends LitElement {
   static properties = {
     currentRoute: { type: String },// 'dashboard' or 'add-item'
     viewMode: { type: String }, //'grid' or 'list'
-    searchQuery: { type: String }
+    searchQuery: { type: String },
+    editingItem: { type: Object }
   };
 
   static styles = css`
@@ -139,17 +140,17 @@ export class InventoryApp extends LitElement {
               <option value="name">Name</option>
             </select>
 
-            <button class="primary" @click="${() => this.currentRoute = 'add-item'}">
+            <button class="primary" @click="${() => { this.editingItem = null; this.currentRoute = 'add-item'; }}">
               + Add New
             </button>
           ` : html``}
         </div>
       </header>
 
-      <main @go-back="${() => this.currentRoute = 'dashboard'}">
+      <main @go-back="${() => { this.currentRoute = 'dashboard'; this.editingItem = null; }}">
         ${this.currentRoute === 'dashboard'
-        ? html`<inventory-dashboard viewMode="${this.viewMode}" searchQuery="${this.searchQuery}"></inventory-dashboard>`
-        : html`<inventory-form></inventory-form>`}
+        ? html`<inventory-dashboard .viewMode=${this.viewMode} .searchQuery=${this.searchQuery} @edit-item="${(e) => { this.editingItem = e.detail; this.currentRoute = 'add-item'; }}"></inventory-dashboard>`
+        : html`<inventory-form .item=${this.editingItem}></inventory-form>`}
       </main>
     `;
   }

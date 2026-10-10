@@ -4,7 +4,8 @@ import { api } from '../services/api.js';
 export class InventoryForm extends LitElement {
   static properties = {
     isSubmitting: { type: Boolean },
-    error: { type: String }
+    error: { type: String },
+    item: { type: Object }
   };
 
   static styles = css`
@@ -201,7 +202,7 @@ export class InventoryForm extends LitElement {
     const dateAdded = this.shadowRoot.querySelector('#date_added').value;
     const description = this.shadowRoot.querySelector('#description').value;
     const tags = this.shadowRoot.querySelector('#tags').value; // Using simple comma input for now
-    
+
     if (!itemName) {
       this.error = 'Item Name is required.';
       return;
@@ -211,17 +212,23 @@ export class InventoryForm extends LitElement {
     this.isSubmitting = true;
 
     try {
-      await api.createItem({
+      const payload = {
         item_name: itemName,
         date_added: dateAdded,
         description: description,
         tags: tags,
-        image: '' // Skipping real image upload for this simple assignment unless required
-      });
-      
+        image: '' // Skipping real image upload for this
+      };
+
+      if (this.item && this.item.name) {
+        await api.updateItem(this.item.name, payload);
+      } else {
+        await api.createItem(payload);
+      }
+
       this._handleBack(); // Return to dashboard on success
     } catch (err) {
-      this.error = err.message || 'Failed to create item';
+      this.error = err.message || 'Failed to save item';
     } finally {
       this.isSubmitting = false;
     }
@@ -233,7 +240,7 @@ export class InventoryForm extends LitElement {
         <button class="back-btn" @click="${this._handleBack}">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
         </button>
-        <h2>Add New Item</h2>
+        <h2>${this.item ? 'Edit Item' : 'Add New Item'}</h2>
       </div>
 
       ${this.error ? html`<div class="error-msg">${this.error}</div>` : ''}
@@ -241,17 +248,17 @@ export class InventoryForm extends LitElement {
       <div class="form-grid">
         <div class="form-group">
           <label>Item Name <span>*</span></label>
-          <input type="text" id="item_name" placeholder="Enter item name" />
+          <input type="text" id="item_name" placeholder="Enter item name" .value="${this.item?.item_name || ''}" />
         </div>
         
         <div class="form-group">
           <label>Date <span>*</span></label>
-          <input type="date" id="date_added" />
+          <input type="date" id="date_added" .value="${this.item?.date_added || ''}" />
         </div>
         
         <div class="form-group full-width">
           <label>Description <span>*</span></label>
-          <textarea id="description" placeholder="Type your message..."></textarea>
+          <textarea id="description" placeholder="Type your message..." .value="${this.item?.description || ''}"></textarea>
         </div>
         
         <div class="form-group full-width">
@@ -266,7 +273,7 @@ export class InventoryForm extends LitElement {
         <div class="form-group full-width">
           <label>Tags</label>
           <div class="tags-container">
-            <input type="text" id="tags" placeholder="E.g. T-shirt, Winter, Mens" />
+            <input type="text" id="tags" placeholder="E.g. T-shirt, Winter, Mens" .value="${this.item?.tags || ''}" />
           </div>
         </div>
       </div>
