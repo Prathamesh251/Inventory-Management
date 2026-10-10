@@ -9,7 +9,8 @@ export class InventoryDashboard extends LitElement {
     activeTag: { type: String },
     loading: { type: Boolean },
     error: { type: String },
-    searchQuery: { type: String }
+    searchQuery: { type: String },
+    sortBy: { type: String }
   };
 
   static styles = css`
@@ -101,6 +102,7 @@ export class InventoryDashboard extends LitElement {
     this.loading = true;
     this.error = null;
     this.searchQuery = '';
+    this.sortBy = '';
   }
 
   connectedCallback() {
@@ -153,6 +155,21 @@ export class InventoryDashboard extends LitElement {
       result = result.filter(item => {
         if (!item.tags) return false;
         return item.tags.toLowerCase().includes(this.activeTag.toLowerCase());
+      });
+    }
+
+    // Apply sorting
+    if (this.sortBy === 'name') {
+      result = result.sort((a, b) => {
+        const nameA = (a.item_name || a.name || '').toLowerCase();
+        const nameB = (b.item_name || b.name || '').toLowerCase();
+        return nameA.localeCompare(nameB);
+      });
+    } else if (this.sortBy === 'dateAdded') {
+      result = result.sort((a, b) => {
+        const dateA = new Date(a.date_added || 0);
+        const dateB = new Date(b.date_added || 0);
+        return dateB - dateA; // Newest first
       });
     }
 

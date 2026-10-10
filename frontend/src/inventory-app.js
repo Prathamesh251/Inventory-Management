@@ -7,7 +7,8 @@ export class InventoryApp extends LitElement {
     currentRoute: { type: String },// 'dashboard' or 'add-item'
     viewMode: { type: String }, //'grid' or 'list'
     searchQuery: { type: String },
-    editingItem: { type: Object }
+    editingItem: { type: Object },
+    sortBy: { type: String }
   };
 
   static styles = css`
@@ -104,6 +105,7 @@ export class InventoryApp extends LitElement {
     this.currentRoute = 'dashboard';
     this.viewMode = 'grid';
     this.searchQuery = '';
+    this.sortBy = '';
   }
 
   render() {
@@ -135,7 +137,7 @@ export class InventoryApp extends LitElement {
               </button>
             </div>
             
-            <select class="sort-by">
+            <select class="sort-by" .value="${this.sortBy}" @change="${(e) => this.sortBy = e.target.value}">
               <option value="">Sort By</option>
               <option value="dateAdded">Date Added</option>
               <option value="name">Name</option>
@@ -150,7 +152,7 @@ export class InventoryApp extends LitElement {
 
       <main @go-back="${() => { this.currentRoute = 'dashboard'; this.editingItem = null; }}">
         ${this.currentRoute === 'dashboard'
-        ? html`<inventory-dashboard .viewMode=${this.viewMode} .searchQuery=${this.searchQuery} @edit-item="${(e) => { this.editingItem = e.detail; this.currentRoute = 'add-item'; }}"></inventory-dashboard>`
+        ? html`<inventory-dashboard .viewMode=${this.viewMode} .searchQuery=${this.searchQuery} .sortBy=${this.sortBy} @edit-item="${(e) => { this.editingItem = e.detail; this.currentRoute = 'add-item'; }}"></inventory-dashboard>`
         : html`<inventory-form .item=${this.editingItem}></inventory-form>`}
       </main>
     `;
