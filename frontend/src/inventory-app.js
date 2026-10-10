@@ -103,6 +103,7 @@ export class InventoryApp extends LitElement {
     super();
     this.currentRoute = 'dashboard';
     this.viewMode = 'grid';
+    this.searchQuery = '';
   }
 
   render() {
