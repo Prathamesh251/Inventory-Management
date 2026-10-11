@@ -215,20 +215,15 @@ export class InventoryForm extends LitElement {
       font-size: 14px;
     }
 
-    .delete-btn {
-      background: none;
-      border: 1px solid #EF4444;
-      color: #EF4444;
+    button.delete-btn {
+      background: black;
+      color: white; 
       cursor: pointer;
-      font-size: 12px;
-      padding: 4px 12px;
-      border-radius: 4px;
       transition: background 0.2s, color 0.2s;
     }
-    
-    .delete-btn:hover {
-      background: #EF4444;
-      color: white;
+    button.delete-btn:hover {
+      background: white;
+      color: black;
     }
   `;
 
@@ -400,7 +395,7 @@ export class InventoryForm extends LitElement {
           </button>
         </div>
         <div class="actions">
-          <button class="delete-btn" @click="${this._handleDelete}">Delete</button> 
+          <button class="btn btn-outline delete-btn" @click="${this._handleDelete}">Delete</button> 
         </div>
       </div>
     `;
