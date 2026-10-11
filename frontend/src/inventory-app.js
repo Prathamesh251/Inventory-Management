@@ -1,4 +1,5 @@
 import { LitElement, html, css } from 'lit';
+import { api } from './services/api.js';
 import './pages/inventory-dashboard.js';
 import './pages/inventory-form.js';
 
@@ -113,6 +114,54 @@ export class InventoryApp extends LitElement {
     this.sortBy = '';
   }
 
+  async handleDelete(name) {
+    if (confirm('Are you sure you want to delete this item?')) {
+      try {
+        await api.deleteItem(name);
+        this.fetchItems();
+      } catch (err) {
+        alert(err.message || 'Failed to delete item');
+      }
+    }
+  }
+
+  async handleDeleteItem(event) {
+    const itemName = event.detail.name;
+
+    if (!itemName) {
+      console.error('Cannot delete: item name is missing.');
+      return;
+    }
+
+    if (!confirm(`Are you sure you want to delete "${itemName}"?`)) {
+      return;
+    }
+
+    try {
+      await api.deleteItem(itemName);
+
+      // Return to the dashboard after successful deletion.
+      this.currentRoute = 'dashboard';
+      this.editingItem = null;
+
+      // Refresh the dashboard's inventory data.
+      await this.updateComplete;
+      const dashboard = this.shadowRoot.querySelector('inventory-dashboard');
+
+      if (dashboard?.fetchItems) {
+        await dashboard.fetchItems();
+      }
+    } catch (err) {
+      console.error('Delete failed:', err);
+      alert(err.message || 'Failed to delete item');
+    }
+  }
+
+  handleBack() {
+    this.currentRoute = 'dashboard';
+    this.editingItem = null;
+  }
+
   render() {
     return html`
       <header>
@@ -154,7 +203,11 @@ export class InventoryApp extends LitElement {
       <main @go-back="${() => { this.currentRoute = 'dashboard'; this.editingItem = null; }}">
         ${this.currentRoute === 'dashboard'
         ? html`<inventory-dashboard .viewMode=${this.viewMode} .searchQuery=${this.searchQuery} .sortBy=${this.sortBy} @edit-item="${(e) => { this.editingItem = e.detail; this.currentRoute = 'add-item'; }}"></inventory-dashboard>`
-        : html`<inventory-form .item=${this.editingItem}></inventory-form>`}
+        : html`<inventory-form 
+          .item=${this.editingItem}
+          @delete-item=${this.handleDeleteItem}
+          @go-back=${this.handleBack}>
+        </inventory-form>`}
       </main>
     `;
   }

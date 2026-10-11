@@ -132,15 +132,6 @@ export class InventoryItem extends LitElement {
     this.view = 'grid';
   }
 
-  _handleDelete(e) {
-    e.stopPropagation();
-    this.dispatchEvent(new CustomEvent('delete-item', {
-      detail: { name: this.item.name },
-      bubbles: true,
-      composed: true
-    }));
-  }
-
   _handleEdit(e) {
     e.stopPropagation();
     this.dispatchEvent(new CustomEvent('edit-item', {

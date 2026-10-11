@@ -320,6 +320,16 @@ export class InventoryForm extends LitElement {
     }
   }
 
+  _handleDelete(e) {
+    console.log("delete")
+    e.stopPropagation();
+    this.dispatchEvent(new CustomEvent('delete-item', {
+      detail: { name: this.item.name },
+      bubbles: true,
+      composed: true
+    }));
+  }
+
   render() {
     return html`
       <div class="header">
@@ -390,7 +400,7 @@ export class InventoryForm extends LitElement {
           </button>
         </div>
         <div class="actions">
-          <button class="delete-btn" @click="${this._handleDelete}">Delete</button>
+          <button class="delete-btn" @click="${this._handleDelete}">Delete</button> 
         </div>
       </div>
     `;

@@ -122,17 +122,6 @@ export class InventoryDashboard extends LitElement {
     }
   }
 
-  async handleDelete(name) {
-    if (confirm('Are you sure you want to delete this item?')) {
-      try {
-        await api.deleteItem(name);
-        this.fetchItems();
-      } catch (err) {
-        alert(err.message || 'Failed to delete item');
-      }
-    }
-  }
-
   setTag(tag) {
     this.activeTag = tag;
   }
