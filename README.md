@@ -66,3 +66,34 @@ The entire application (Frontend UI, API Proxy, and ERPNext Backend infrastructu
 # Inventory-Management
 
 > > > > > > > 02d18b1d0aa7628162e45ee7a8de9ea67619cc7e
+
+
+# Connect to MariaDB
+
+Run this command in PowerShell:
+docker exec -it frappe_docker-db-1 mariadb -u root -p
+
+Enter the configured MariaDB root password when prompted.(password:admin)
+
+If authentication succeeds, the terminal displays a MariaDB prompt similar to:
+
+MariaDB [(none)]>
+
+Important: Password characters will not appear while typing. This is normal.
+
+Select the ERPNext database
+Execute the following SQL command inside MariaDB:
+USE `_c75239610f56eea4`;
+
+Expected output:
+Database changed
+
+ERPNext's Item DocType is commonly represented by the tabItem database table.
+View the 10 items
+SELECT
+    name,
+    item_name,
+    item_group,
+    description
+FROM tabItem
+LIMIT 10;
