@@ -26,7 +26,17 @@ const upload = multer({ storage: storage });
 
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-app.use(cors({ origin: 'http://localhost:8081' }));
+const allowedOrigins = ['http://localhost:8081', 'http://localhost:8080'];
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  }
+}));
+
 app.use(express.json());
 
 // ERPNext URL and Headers configuration
@@ -125,7 +135,7 @@ app.post('/api/items', async (req, res) => {
       headers: getHeaders(),
       body: JSON.stringify({
         item_code: item_name.trim().replace(/\s+/g, '-').toUpperCase() + '-' + Date.now().toString().slice(-4),
-        item_group: 'Products',
+        item_group: 'All Item Groups',
         item_name: item_name.trim(),
         description: finalDescription,
         image: image.trim(),

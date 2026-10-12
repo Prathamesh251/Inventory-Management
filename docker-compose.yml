@@ -1,6 +1,8 @@
-services:
+include:
+  - path: ./frappe_docker/pwd.yml
 
-  frontend:
+services:
+  lit-frontend:
     build:
       context: ./frontend
     ports:
@@ -8,7 +10,7 @@ services:
     depends_on:
       - api-proxy
     networks:
-      - default
+      - frappe_network
 
   api-proxy:
     build:
@@ -20,9 +22,5 @@ services:
       - ERPNEXT_API_KEY=${ERPNEXT_API_KEY}
       - ERPNEXT_API_SECRET=${ERPNEXT_API_SECRET}
     networks:
-      - default
-      - frappe_docker_frappe_network
+      - frappe_network
 
-networks:
-  frappe_docker_frappe_network:
-    external: true

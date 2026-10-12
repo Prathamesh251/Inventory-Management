@@ -1,99 +1,109 @@
-<<<<<<< HEAD
-
 # Inventory Management Application
 
-This is a simple Inventory Management application built with Lit elements for the frontend, Node.js for the API proxy, and ERPNext as the backend. It has been fully containerized using Docker.
+This is a complete Inventory Management application built with **Lit** for the frontend, a **Node.js Express** API proxy, and **ERPNext (Frappe)** as the backend, fully orchestrated using Docker Compose.
+
+---
+
+## Architecture Overview
+
+- **Frontend (`/frontend`)**: Built with Lit web components and Vite, served in production via Nginx on port `8081`.
+- **API Proxy (`/api-proxy`)**: A Node.js Express server running on port `3000` that securely attaches ERPNext API keys and proxies requests between the frontend and ERPNext REST APIs.
+- **Backend (`/frappe_docker`)**: Standard ERPNext v16 container stack including ERPNext web frontend (port `8080`), backend gunicorn server (port `8000`), MariaDB (`db`), Redis (`redis-cache`, `redis-queue`), worker queues, and scheduler.
+
+---
 
 ## Prerequisites
 
-Before you begin, ensure you have the following installed on your machine:
+Before starting, make sure you have installed:
+- [Docker Desktop](https://docs.docker.com/get-docker/) (with Docker Compose v2.20+ support)
 
-- [Docker](https://docs.docker.com/get-docker/)
-- [Docker Compose](https://docs.docker.com/compose/install/)
+---
 
-## Setup Instructions
+## Setup & Running the Application
 
-1. **Environment Variables Configuration**
-   In the root folder of this project (`inventory-management/`), create a file named `.env` and add your ERPNext API credentials:
+All services (ERPNext, MariaDB, Redis, API Proxy, and Lit Frontend) are unified into the root [docker-compose.yml](file:///d:/inventory-management/docker-compose.yml).
 
-   ```env
-   ERPNEXT_API_KEY=your_actual_api_key_here
-   ERPNEXT_API_SECRET=your_actual_api_secret_here
-   ```
+### 1. Environment Variables Configuration
 
-   _(Note: This file is ignored by Git to keep your secrets safe)._
+In the root folder (`inventory-management/`), ensure your `.env` file exists with your ERPNext API credentials:
 
-2. **ERPNext Configuration (Backend Setup)**
-   Since we are using ERPNext, before the UI can fetch items, you need to ensure the custom DocType exists on your ERPNext instance.
-   - Log in to your ERPNext Admin panel (once it is running).
-   - Go to **DocType List** and create a new DocType named `Inventory Item`.
-   - Add the following exact fields:
-     - `item_name` (Data)
-     - `description` (Text)
-     - `image` (Attach Image)
-     - `tags` (Data)
-     - `date_added` (Date)
+```env
+PORT=3000
+ERPNEXT_URL=http://localhost:8080
+ERPNEXT_API_KEY=your_actual_api_key_here
+ERPNEXT_API_SECRET=your_actual_api_secret_here
+```
 
-## How to Run the Project
+*(Note: API keys are generated from your ERPNext Administrator user once ERPNext is running).*
 
-The entire application (Frontend UI, API Proxy, and ERPNext Backend infrastructure) is bundled into a single Docker Compose file.
+### 2. Start the Application
 
-1. **Start the containers**
-   Open your terminal in the root of the project (where `docker-compose.yml` is located) and run:
+From the root project folder, run:
 
+```bash
+docker compose up -d
+```
+
+> **Note on initial startup:** When running for the first time, ERPNext's `create-site` container automatically provisions the site and installs ERPNext into MariaDB. This process takes 2–5 minutes. You can monitor the progress with:
+> ```bash
+> docker compose logs -f create-site
+> ```
+
+### 3. Access the Services
+
+Once the containers are up and healthy:
+
+| Service | URL | Credentials / Notes |
+| :--- | :--- | :--- |
+| **Lit Frontend UI** | [http://localhost:8081](http://localhost:8081) | Main user-facing Inventory application |
+| **ERPNext Desk** | [http://localhost:8080](http://localhost:8080) | Username: `Administrator`, Password: `admin` |
+| **API Proxy** | [http://localhost:3000](http://localhost:3000) | REST API endpoints (`/api/items`, `/api/upload`) |
+
+### 4. ERPNext API Key Setup
+
+1. Open **ERPNext Desk** at [http://localhost:8080](http://localhost:8080).
+2. Log in using `Administrator` / `admin`.
+3. In the search bar, search for **User List** and click on `Administrator`.
+4. Scroll down to the **API Access** section and click **Generate Keys**.
+5. Copy the generated **API Key** and **API Secret**.
+6. Place them in your root `.env` file (`ERPNEXT_API_KEY` and `ERPNEXT_API_SECRET`).
+7. Restart the API proxy to pick up the keys:
    ```bash
-   docker compose up -d
+   docker compose restart api-proxy
    ```
 
-   This will build the Lit frontend and the Node API proxy, download the necessary ERPNext/Database images, and start everything in the background.
+*(Note: The application integrates directly with ERPNext's standard **Item** DocType under Stock > Item).*
 
-2. **Access the Application**
-   - **Frontend UI**: Open your browser and go to [http://localhost:8080](http://localhost:8080)
-   - **ERPNext Backend**: Open your browser and go to [http://localhost:8000](http://localhost:8000)
+### 5. Stopping the Application
 
-3. **Stop the containers**
-   When you are done, you can stop the application by running:
-   ```bash
-   docker compose down
+To shut down all containers:
+
+```bash
+docker compose down
+```
+
+---
+
+## Verifying Data in MariaDB
+
+To inspect the underlying database items created in ERPNext:
+
+1. Connect to the MariaDB container:
+   ```powershell
+   docker exec -it inventory-management-db-1 mariadb -u root -padmin
    ```
 
-## Architecture Notes
+2. List databases to find your site database:
+   ```sql
+   SHOW DATABASES;
+   ```
 
-- The **Frontend** (`/frontend`) is built as static files using Vite and served via an ultra-fast NGINX container.
-- The **API Proxy** (`/api-proxy`) is a Node.js Express server that securely holds your ERPNext credentials and forwards your UI's REST API requests to the ERPNext backend.
-- # The **Backend** utilizes standard Frappe/ERPNext Docker images alongside MariaDB and Redis.
+3. Select your database (typically starts with `_` followed by a hash):
+   ```sql
+   USE `<your_database_name>`;
+   ```
 
-# Inventory-Management
-
-> > > > > > > 02d18b1d0aa7628162e45ee7a8de9ea67619cc7e
-
-
-# Connect to MariaDB
-
-Run this command in PowerShell:
-docker exec -it frappe_docker-db-1 mariadb -u root -p
-
-Enter the configured MariaDB root password when prompted.(password:admin)
-
-If authentication succeeds, the terminal displays a MariaDB prompt similar to:
-
-MariaDB [(none)]>
-
-Important: Password characters will not appear while typing. This is normal.
-
-Select the ERPNext database
-Execute the following SQL command inside MariaDB:
-USE `_c75239610f56eea4`;
-
-Expected output:
-Database changed
-
-ERPNext's Item DocType is commonly represented by the tabItem database table.
-View the 10 items
-SELECT
-    name,
-    item_name,
-    item_group,
-    description
-FROM tabItem
-LIMIT 10;
+4. Query the stored items:
+   ```sql
+   SELECT name, item_name, item_group, description FROM tabItem LIMIT 10;
+   ```
