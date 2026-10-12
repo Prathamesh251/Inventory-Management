@@ -3,7 +3,7 @@ import { LitElement, html, css } from 'lit';
 export class InventoryItem extends LitElement {
   static properties = {
     item: { type: Object },
-    view: { type: String } // 'grid' or 'list'
+    view: { type: String }
   };
 
   static styles = css`

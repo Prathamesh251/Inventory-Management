@@ -150,7 +150,7 @@ export class InventoryDashboard extends LitElement {
       });
     }
 
-    // Apply tag filter (Note: Since we are querying standard ERPNext items right now, 'tags' doesn't exist on the backend. This filter will always return nothing if not 'All' until we switch back to 'Inventory Item')
+    // Apply tag filter
     if (this.activeTag !== 'All') {
       result = result.filter(item => {
         if (!item.tags) return false;

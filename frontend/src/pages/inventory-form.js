@@ -307,7 +307,7 @@ export class InventoryForm extends LitElement {
         await api.createItem(payload);
       }
 
-      this._handleBack(); // Return to dashboard on success
+      this._handleBack();
     } catch (err) {
       this.error = err.message || 'Failed to save item';
     } finally {
