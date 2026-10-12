@@ -48,10 +48,37 @@ git clone https://github.com/Prathamesh251/Inventory-Management.git
 cd Inventory-Management
 ```
 
-If `frappe_docker/` is managed as a git submodule in your remote:
+> [!IMPORTANT]
+> **If `frappe_docker/` is empty after cloning:**
+> `frappe_docker` contains its own `.git` history and Docker configurations. If it is empty after cloning, run:
+> ```bash
+> # Option A: If registered as a Git submodule:
+> git submodule update --init --recursive
+> 
+> # Option B: If frappe_docker folder is empty:
+> git clone https://github.com/frappe/frappe_docker
+> ```
+> *(Note: Ensure `frappe_docker/pwd.yml` is present, as `docker-compose.yml` includes it).*
+
+#### 💡 How to Permanently Include `frappe_docker` in this Repository (For Maintainers)
+To prevent `frappe_docker` from ever being empty for new cloners, remove its internal `.git` folder and commit it as regular tracked files in the main repository:
+
 ```bash
-git submodule update --init --recursive
+# 1. Untrack the nested gitlink in the parent repo
+git rm --cached frappe_docker
+
+# 2. Remove the inner .git folder inside frappe_docker
+# On Windows PowerShell:
+Remove-Item -Recurse -Force frappe_docker\.git
+# On Linux / macOS:
+rm -rf frappe_docker/.git
+
+# 3. Add and commit frappe_docker directly to your main repo
+git add frappe_docker
+git commit -m "Include frappe_docker files directly in repository"
+git push origin main
 ```
+Once done, anyone running `git clone` will immediately get all `frappe_docker` files with zero extra steps!
 
 ---
 
