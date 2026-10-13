@@ -24,3 +24,7 @@ services:
     networks:
       - frappe_network
 
+  db:
+    image: mariadb:11.8
+    ports:
+      - "127.0.0.1:3307:3306"
