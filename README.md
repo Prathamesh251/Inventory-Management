@@ -50,37 +50,7 @@ cd Inventory-Management
 
 > [!IMPORTANT]
 > **If `frappe_docker/` is empty after cloning:**
-> `frappe_docker` contains its own `.git` history and Docker configurations. If it is empty after cloning, run:
-> ```bash
-> # Option A: If registered as a Git submodule:
-> git submodule update --init --recursive
-> 
-> # Option B: If frappe_docker folder is empty:
-> git clone https://github.com/frappe/frappe_docker
-> ```
-> *(Note: Ensure `frappe_docker/pwd.yml` is present, as `docker-compose.yml` includes it).*
-
-#### 💡 How to Permanently Include `frappe_docker` in this Repository (For Maintainers)
-To prevent `frappe_docker` from ever being empty for new cloners, remove its internal `.git` folder and commit it as regular tracked files in the main repository:
-
-```bash
-# 1. Untrack the nested gitlink in the parent repo
-git rm --cached frappe_docker
-
-# 2. Remove the inner .git folder inside frappe_docker
-# On Windows PowerShell:
-Remove-Item -Recurse -Force frappe_docker\.git
-# On Linux / macOS:
-rm -rf frappe_docker/.git
-
-# 3. Add and commit frappe_docker directly to your main repo
-git add frappe_docker
-git commit -m "Include frappe_docker files directly in repository"
-git push origin main
-```
-Once done, anyone running `git clone` will immediately get all `frappe_docker` files with zero extra steps!
-
----
+> `git clone https://github.com/frappe/frappe_docker`
 
 ### Step 2: Configure Environment Variables
 
@@ -98,7 +68,7 @@ Ensure your root [`.env`](file:///d:/inventory-management/.env) contains:
 
 ```env
 PORT=3000
-ERPNEXT_URL=http://backend:8000
+ERPNEXT_URL=http://localhost:8080
 ERPNEXT_API_KEY=your_api_key_here
 ERPNEXT_API_SECRET=your_api_secret_here
 ```
@@ -163,7 +133,7 @@ To allow the frontend and API proxy to read and create inventory items:
 Once configured, verify all components are communicating:
 
 | Service | Address | Description | Verification Check |
-| :--- | :--- | :--- | :--- |
+
 | **Lit Frontend UI** | [http://localhost:8081](http://localhost:8081) | Main user interface | Dashboard loads, shows inventory grid/list |
 | **API Proxy** | [http://localhost:3000/api/items](http://localhost:3000/api/items) | Backend bridge | Returns JSON array `[]` or list of items |
 | **ERPNext Desk** | [http://localhost:8080](http://localhost:8080) | ERP Administrator portal | Stock > Item DocType displays newly added items |
