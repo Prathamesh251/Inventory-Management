@@ -43,33 +43,50 @@ app.use(express.json());
 const getHeaders = () => ({
   Authorization: `token ${process.env.ERPNEXT_API_KEY}:${process.env.ERPNEXT_API_SECRET}`,
   Accept: 'application/json',
+  'Content-Type': 'application/json',
   'X-Frappe-Site-Name': 'frontend'
 });
 
-// Helper to add tags via Frappe API
-async function addFrappeTags(itemName, tags) {
-  if (!tags) return;
+// Proxy ERPNext images (both public and private files)
+app.get('/api/file-proxy', async (req, res) => {
   try {
-    const url = new URL('/api/method/frappe.desk.tags.add_tags', process.env.ERPNEXT_URL);
-    await fetch(url, {
-      method: 'POST',
-      headers: getHeaders(),
-      body: JSON.stringify({ tags, dt: 'Item', dn: itemName })
-    });
-  } catch (err) {
-    console.error('Failed to add tags:', err);
+    const filePath = req.query.path;
+    if (!filePath) {
+      return res.status(400).send('File path required');
+    }
+
+    if (!filePath.startsWith('/files/') && !filePath.startsWith('/private/files/')) {
+      return res.status(400).send('Invalid file path');
+    }
+
+    const url = new URL(filePath, process.env.ERPNEXT_URL);
+    const response = await fetch(url, { headers: getHeaders() });
+
+    if (!response.ok) {
+      return res.status(response.status).send('File not found in ERPNext');
+    }
+
+    const contentType = response.headers.get('content-type') || 'application/octet-stream';
+    res.setHeader('Content-Type', contentType);
+    res.setHeader('Cache-Control', 'public, max-age=3600');
+
+    const arrayBuffer = await response.arrayBuffer();
+    res.send(Buffer.from(arrayBuffer));
+  } catch (error) {
+    console.error('File proxy error:', error.message);
+    res.status(500).send('Error proxying file');
   }
-}
+});
 
 // GET list of Inventory Items
 app.get('/api/items', async (req, res) => {
   try {
-    const url = new URL('/api/resource/Item', process.env.ERPNEXT_URL);
+    const url = new URL('/api/resource/Inventory Item', process.env.ERPNEXT_URL);
 
-    // Fetch standard fields that exist on the default Item DocType
+    // Fetch fields that exist on the custom Inventory Item DocType
     url.searchParams.set(
       'fields',
-      JSON.stringify(['name', 'item_name', 'description', 'image', 'item_group', 'creation', 'modified'])
+      JSON.stringify(['name', 'item_name', 'description', 'image', 'tags', 'date_added', 'creation', 'modified'])
     );
 
     // Pass through search/filtering if provided by the frontend
@@ -89,21 +106,22 @@ app.get('/api/items', async (req, res) => {
       return res.status(response.status).json({ error: result.exception || 'ERPNext API request failed' });
     }
 
-    const mappedItems = (result.data || []).map(item => {
-      let extractedTags = '';
-      let cleanDescription = item.description || '';
+    const baseUrl = `${req.protocol}://${req.get('host')}`;
 
-      const tagMatch = cleanDescription.match(/\[TAGS:(.*?)\]/);
-      if (tagMatch) {
-        extractedTags = tagMatch[1].trim();
-        cleanDescription = cleanDescription.replace(/\[TAGS:.*?\]/g, '').trim();
+    const mappedItems = (result.data || []).map(item => {
+      let img = item.image || '';
+      // If image is a relative ERPNext path (/files/ or /private/files/), route through our proxy
+      if (img && (img.startsWith('/files/') || img.startsWith('/private/files/'))) {
+        img = `${baseUrl}/api/file-proxy?path=${encodeURIComponent(img)}`;
       }
 
       return {
-        ...item,
-        description: cleanDescription,
-        tags: extractedTags || item.item_group,
-        date_added: item.modified ? new Date(item.modified).toISOString().split('T')[0] : (item.creation ? new Date(item.creation).toISOString().split('T')[0] : '')
+        name: item.name,
+        item_name: item.item_name || '',
+        description: item.description || '',
+        image: img,
+        tags: item.tags || '',
+        date_added: item.date_added || (item.modified ? new Date(item.modified).toISOString().split('T')[0] : (item.creation ? new Date(item.creation).toISOString().split('T')[0] : ''))
       };
     });
 
@@ -123,22 +141,23 @@ app.post('/api/items', async (req, res) => {
       return res.status(400).json({ error: 'Item name is required' });
     }
 
-    const url = new URL('/api/resource/Item', process.env.ERPNEXT_URL);
-
-    let finalDescription = description.trim();
-    if (tags.trim()) {
-      finalDescription += ` [TAGS:${tags.trim()}]`;
+    let finalImg = image ? image.trim() : '';
+    const match = finalImg.match(/[?&]path=([^&]+)/);
+    if (match) {
+      finalImg = decodeURIComponent(match[1]);
     }
+
+    const url = new URL('/api/resource/Inventory Item', process.env.ERPNEXT_URL);
 
     const response = await fetch(url, {
       method: 'POST',
       headers: getHeaders(),
       body: JSON.stringify({
-        item_code: item_name.trim().replace(/\s+/g, '-').toUpperCase() + '-' + Date.now().toString().slice(-4),
-        item_group: 'All Item Groups',
         item_name: item_name.trim(),
-        description: finalDescription,
-        image: image.trim(),
+        description: description.trim(),
+        image: finalImg,
+        tags: tags.trim(),
+        date_added: date_added || new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' })
       }),
     });
 
@@ -156,11 +175,40 @@ app.post('/api/items', async (req, res) => {
 });
 
 // POST upload image
-app.post('/api/upload', upload.single('image'), (req, res) => {
+app.post('/api/upload', upload.single('image'), async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ error: 'No file uploaded' });
     }
+
+    // Persist upload directly to ERPNext so it lives in Frappe's file system
+    try {
+      const fileBuffer = fs.readFileSync(req.file.path);
+      const fileBlob = new Blob([fileBuffer], { type: req.file.mimetype });
+      const formData = new FormData();
+      formData.append('file', fileBlob, req.file.originalname || req.file.filename);
+      formData.append('is_private', '0');
+
+      const erpResponse = await fetch(new URL('/api/method/upload_file', process.env.ERPNEXT_URL), {
+        method: 'POST',
+        headers: {
+          Authorization: `token ${process.env.ERPNEXT_API_KEY}:${process.env.ERPNEXT_API_SECRET}`,
+          'X-Frappe-Site-Name': 'frontend'
+        },
+        body: formData
+      });
+
+      const erpResult = await erpResponse.json();
+      if (erpResponse.ok && erpResult.message && erpResult.message.file_url) {
+        const baseUrl = `${req.protocol}://${req.get('host')}`;
+        return res.json({
+          url: `${baseUrl}/api/file-proxy?path=${encodeURIComponent(erpResult.message.file_url)}`
+        });
+      }
+    } catch (erpErr) {
+      console.warn('ERPNext upload_file fallback to local storage:', erpErr.message);
+    }
+
     const fileUrl = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
     res.json({ url: fileUrl });
   } catch (error) {
@@ -175,23 +223,21 @@ app.put('/api/items/:name', async (req, res) => {
     const { item_name, description, image, tags, date_added } = req.body;
     const itemNameId = req.params.name;
 
-    const url = new URL(`/api/resource/Item/${encodeURIComponent(itemNameId)}`, process.env.ERPNEXT_URL);
+    const url = new URL(`/api/resource/Inventory Item/${encodeURIComponent(itemNameId)}`, process.env.ERPNEXT_URL);
 
-    // Only update fields that were actually passed in the request
     const updateData = {};
     if (item_name !== undefined) updateData.item_name = item_name.trim();
-    if (image !== undefined) updateData.image = image.trim();
-
-    if (description !== undefined || tags !== undefined) {
-      let currentDesc = description !== undefined ? description.trim() : '';
-      let currentTags = tags !== undefined ? tags.trim() : '';
-      if (currentTags) {
-        updateData.description = `${currentDesc} [TAGS:${currentTags}]`;
-      } else {
-        updateData.description = currentDesc;
+    if (description !== undefined) updateData.description = description.trim();
+    if (image !== undefined) {
+      let finalImg = image.trim();
+      const match = finalImg.match(/[?&]path=([^&]+)/);
+      if (match) {
+        finalImg = decodeURIComponent(match[1]);
       }
+      updateData.image = finalImg;
     }
-    updateData.date_added = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
+    if (tags !== undefined) updateData.tags = tags.trim();
+    if (date_added !== undefined && date_added !== '') updateData.date_added = date_added;
 
     const response = await fetch(url, {
       method: 'PUT',
@@ -217,7 +263,7 @@ app.delete('/api/items/:name', async (req, res) => {
   try {
     const itemNameId = req.params.name;
 
-    const url = new URL(`/api/resource/Item/${encodeURIComponent(itemNameId)}`, process.env.ERPNEXT_URL);
+    const url = new URL(`/api/resource/Inventory Item/${encodeURIComponent(itemNameId)}`, process.env.ERPNEXT_URL);
 
     const response = await fetch(url, {
       method: 'DELETE',

@@ -242,6 +242,7 @@ export class InventoryForm extends LitElement {
       } else {
         this.tags = [];
       }
+      this.uploadedImage = this.item?.image || '';
     }
   }
 
@@ -279,9 +280,9 @@ export class InventoryForm extends LitElement {
   }
 
   async _handleSave() {
-    const itemName = this.shadowRoot.querySelector('#item_name').value;
-    const dateAdded = this.shadowRoot.querySelector('#date_added').value;
-    const description = this.shadowRoot.querySelector('#description').value;
+    const itemName = this.shadowRoot.querySelector('#item_name')?.value?.trim();
+    const dateAdded = this.shadowRoot.querySelector('#date_added')?.value;
+    const description = this.shadowRoot.querySelector('#description')?.value?.trim() || '';
     const tags = this.tags.join(', ');
 
     if (!itemName) {
@@ -295,7 +296,7 @@ export class InventoryForm extends LitElement {
     try {
       const payload = {
         item_name: itemName,
-        date_added: dateAdded,
+        date_added: dateAdded || this.item?.date_added || new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' }),
         description: description,
         tags: tags,
         image: this.uploadedImage || this.item?.image || ''
@@ -340,24 +341,23 @@ export class InventoryForm extends LitElement {
         <div class="form-group">
           <label>Item Name <span>*</span></label>
           <input 
-          type="text" 
-          id="item_name" 
-          placeholder="Enter item name" 
-          .value="${this.item?.item_name || ''}" />
+            type="text" 
+            id="item_name" 
+            placeholder="Enter item name" 
+            .value="${this.item?.item_name || ''}" />
         </div>
         
         <div class="form-group">
+          <label>Date Added</label>
           <input 
-          hidden
-          disabled
-          type="date"  
-          id="date_added"
-          .value="${new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' })}" />
+            type="date"  
+            id="date_added"
+            .value="${this.item?.date_added || new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' })}" />
         </div>
         
         <div class="form-group full-width">
-          <label>Description <span>*</span></label>
-          <textarea id="description" placeholder="Type your message..." .value="${this.item?.description || ''}"></textarea>
+          <label>Description</label>
+          <textarea id="description" placeholder="Type item description..." .value="${this.item?.description || ''}"></textarea>
         </div>
         
         <div class="form-group full-width"> 

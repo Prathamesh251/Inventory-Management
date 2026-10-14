@@ -20,7 +20,7 @@ graph TD
 | :--- | :--- | :--- | :--- | :--- |
 | **Frontend** | Lit Web Components | [`frontend/`](file:///d:/inventory-management/frontend) | `8081` | Single-page UI with grid/list view, search, tag filters, item creation, and image uploads |
 | **API Proxy** | Express.js Server | [`api-proxy/`](file:///d:/inventory-management/api-proxy) | `3000` | Securely injects ERPNext API tokens, formats tag metadata, handles file uploads (`/uploads`), and handles CORS |
-| **Backend** | ERPNext v16 / Frappe | [`frappe_docker/`](file:///d:/inventory-management/frappe_docker) | `8080` (Desk)<br>`8000` (Internal) | ERPNext core backend, REST APIs (`/api/resource/Item`), MariaDB database, Redis queues, scheduler |
+| **Backend** | ERPNext v16 / Frappe | [`frappe_docker/`](file:///d:/inventory-management/frappe_docker) | `8080` (Desk)<br>`8000` (Internal) | ERPNext core backend, REST APIs (`/api/resource/Inventory Item`), MariaDB database, Redis queues, scheduler |
 
 ---
 
@@ -65,7 +65,7 @@ Copy-Item .env.example .env -ErrorAction SilentlyContinue
 ```
 
 Ensure your root [`.env`](file:///d:/inventory-management/.env) contains:
-
+ 
 ```env
 PORT=3000
 ERPNEXT_URL=http://localhost:8080
@@ -213,7 +213,7 @@ To directly verify items stored in MariaDB:
 
 3. Query stored inventory records:
    ```sql
-   SELECT name, item_name, item_group, description FROM tabItem ORDER BY creation DESC LIMIT 5;
+   SELECT name, item_name, tags, description, date_added FROM `tabInventory Item` ORDER BY creation DESC LIMIT 5;
    ```
 
 4. Exit MariaDB:
